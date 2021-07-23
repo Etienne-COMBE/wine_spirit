@@ -1,5 +1,6 @@
 import pandas as pd
 from scipy.stats import zscore, iqr
+from sklearn.cluster import KMeans
 
 def cleaning_web_df(web_df):
     web_df_clean = web_df.dropna(axis=1, how = 'all')
@@ -8,9 +9,7 @@ def cleaning_web_df(web_df):
                                               'rating_count', 'average_rating',
                                               'post_parent', 'menu_order', 'comment_count'])          
     web_clean = web_df_clean.drop_duplicates(subset='sku')
-
     web_clean = web_clean.dropna(axis = 0, how = 'all')
-    
     web_clean = web_clean.drop(columns='post_mime_type')
     return web_clean
 
@@ -31,3 +30,13 @@ def outliers_iqr(fusion, column):
     temp['q3'] = temp[column].quantile(0.75)
     outliers_iqr = temp.query('(q1 - 1.5*iqr) <= price >= (q3 + 1.5*iqr)')
     return outliers_iqr
+
+def clustering_kmeans(x_train, x_test):
+    kmeans = KMeans(n_clusters=5, random_state=0)
+    kmeans.fit(x_train)
+    kmeans.labels_
+    x_train['cluster'] = kmeans.labels_
+    x_test['cluster'] = kmeans.predict(x_test)
+    x_train['turnover'] = x_train['price'] * x_train['total_sales']
+    x_test['turnover'] = x_test['price'] * x_test['total_sales']
+    return x_train, x_test
